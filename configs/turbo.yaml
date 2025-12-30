@@ -1,0 +1,37 @@
+# Turbo config - fast iterations for testing
+# ~1-2 minutes per iteration on GPU
+
+mcts:
+  num_simulations: 25
+  c_puct: 1.5
+  dirichlet_alpha: 0.3
+  dirichlet_epsilon: 0.25
+  temp_threshold: 6
+
+network:
+  num_channels: 32
+  num_blocks: 3
+
+train:
+  batch_size: 256
+  lr: 0.001
+  weight_decay: 0.0001
+  train_steps_per_iter: 50
+  value_loss_weight: 1.0
+
+selfplay:
+  games_per_iter: 10
+  max_moves: 42
+  augment_data: true
+
+eval:
+  num_matches: 10
+  accept_threshold: 0.55
+  eval_simulations: 25
+
+buffer:
+  capacity: 50000
+  min_samples: 200
+
+num_iterations: 100
+seed: 42
