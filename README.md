@@ -129,6 +129,31 @@ eval:
 
 ## How It Works
 
+### Training Loop (Each Iteration)
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│  1. SELF-PLAY                                               │
+│     Model plays N games against itself using MCTS           │
+│     Stores: (board position, MCTS policy, game outcome)     │
+│                                                             │
+│  2. TRAIN                                                   │
+│     Neural net learns to:                                   │
+│     - Predict MCTS move probabilities (policy loss)         │
+│     - Predict game winner from position (value loss)        │
+│                                                             │
+│  3. ARENA                                                   │
+│     New model vs current best, head-to-head                 │
+│     If win rate > 55%: new model becomes best               │
+│     Otherwise: keep training, try again next iteration      │
+└─────────────────────────────────────────────────────────────┘
+```
+
+**Why this works:**
+- **Self-play**: MCTS explores moves even when the neural net is bad. Visit counts become training targets.
+- **Training**: Net learns to mimic MCTS (skip slow search) and predict outcomes (better MCTS evaluation).
+- **Arena**: Gatekeeping prevents regression - only keep models that actually improve.
+
 ### 1. State Representation
 
 The board is stored in **canonical form** from the current player's perspective:
