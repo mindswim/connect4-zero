@@ -1,6 +1,8 @@
-# Connect4-Zero
+# AlphaZero Arcade
 
-An AlphaZero-style learner for Connect 4. Clean implementation designed for learning and experimentation on Apple Silicon Macs.
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/mindswim/connect4-zero/blob/main/notebooks/train_colab.ipynb)
+
+Train superhuman AI for board games using AlphaZero. Supports multiple games with GPU-optimized training.
 
 ## What is AlphaZero?
 
@@ -230,13 +232,24 @@ npm run dev
 
 The web app uses ONNX Runtime Web to run the neural network directly in the browser with MCTS.
 
+## Supported Games
+
+| Game | Status | Training Time (A100) |
+|------|--------|---------------------|
+| Tic-Tac-Toe | Ready | ~2 min |
+| Connect 4 | Ready | ~30 min |
+| Othello | Coming soon | ~2 hrs |
+| Chess | Planned | Days |
+
 ## Roadmap
 
-- [ ] Batched neural network evaluation during MCTS
-- [ ] Multiprocessing for self-play
-- [ ] Generic game interface for chess
+- [x] Batched MCTS for GPU efficiency
+- [x] Generic game interface (any game)
+- [x] Difficulty system (Easy to Impossible)
 - [x] ONNX export for deployment
-- [x] Web UI for playing
+- [x] Web UI with difficulty slider
+- [ ] Othello game
+- [ ] Parallel self-play
 
 ## License
 
