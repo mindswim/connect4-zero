@@ -13,7 +13,7 @@ import {
 } from '../lib/game';
 import { Connect4AI, RandomAI } from '../lib/ai';
 
-type GameState = 'loading' | 'ready' | 'playing' | 'thinking' | 'gameover';
+type GameState = 'loading' | 'ready' | 'playing' | 'thinking' | 'previewing' | 'gameover';
 type Winner = 'player' | 'ai' | 'draw' | null;
 
 interface Props {
@@ -36,26 +36,38 @@ export default function Connect4Game({
   const [lastMove, setLastMove] = useState<{ row: number; col: number } | null>(null);
   const [moveHistory, setMoveHistory] = useState<number[]>([]);
   const [useRandom, setUseRandom] = useState(false);
+  const [aiPreviewCol, setAiPreviewCol] = useState<number | null>(null);
 
   const humanPlayer: Player = playerFirst ? 1 : 2;
   const aiPlayer: Player = playerFirst ? 2 : 1;
 
   // Load model on mount
   useEffect(() => {
+    let mounted = true;
+
     async function loadAI() {
       try {
         const aiInstance = new Connect4AI(numSimulations);
         await aiInstance.loadModel(modelPath);
-        setAi(aiInstance);
-        setGameState('ready');
+        if (mounted) {
+          setAi(aiInstance);
+          setGameState('ready');
+        }
       } catch (error) {
         console.warn('Failed to load model, using random AI:', error);
-        setAi(new RandomAI());
-        setUseRandom(true);
-        setGameState('ready');
+        if (mounted) {
+          setAi(new RandomAI());
+          setUseRandom(true);
+          setGameState('ready');
+        }
       }
     }
+
     loadAI();
+
+    return () => {
+      mounted = false;
+    };
   }, [modelPath, numSimulations]);
 
   // AI move
@@ -64,9 +76,6 @@ export default function Connect4Game({
 
     setGameState('thinking');
 
-    // Small delay for UX
-    await new Promise(resolve => setTimeout(resolve, 100));
-
     let col: number;
     if (ai instanceof Connect4AI) {
       col = await ai.getBestMove(board, currentPlayer);
@@ -74,7 +83,14 @@ export default function Connect4Game({
       col = ai.getBestMove(board, currentPlayer);
     }
 
-    // Find the row where piece lands
+    // Show preview at top of column
+    setAiPreviewCol(col);
+    setGameState('previewing');
+
+    // Wait a moment so user can see the preview
+    await new Promise(resolve => setTimeout(resolve, 400));
+
+    // Find landing row
     let landingRow = 0;
     for (let row = ROWS - 1; row >= 0; row--) {
       if (board[row][col] === 0) {
@@ -83,10 +99,12 @@ export default function Connect4Game({
       }
     }
 
+    // Place the piece
     const newBoard = applyMove(board, col, currentPlayer);
     setBoard(newBoard);
     setLastMove({ row: landingRow, col });
     setMoveHistory(prev => [...prev, col]);
+    setAiPreviewCol(null);
 
     const { done, winner: gameWinner } = isTerminal(newBoard);
     if (done) {
@@ -111,7 +129,7 @@ export default function Connect4Game({
     const legalMoves = getLegalMoves(board);
     if (!legalMoves[col]) return;
 
-    // Find the row where piece lands
+    // Find landing row
     let landingRow = 0;
     for (let row = ROWS - 1; row >= 0; row--) {
       if (board[row][col] === 0) {
@@ -147,23 +165,23 @@ export default function Connect4Game({
     }
   }, [gameState, currentPlayer, aiPlayer, makeAIMove]);
 
-  // Start game
   const startGame = () => {
     setBoard(createBoard());
     setCurrentPlayer(1);
     setWinner(null);
     setLastMove(null);
     setMoveHistory([]);
+    setAiPreviewCol(null);
     setGameState('playing');
   };
 
-  // Reset game
   const resetGame = () => {
     setBoard(createBoard());
     setCurrentPlayer(1);
     setWinner(null);
     setLastMove(null);
     setMoveHistory([]);
+    setAiPreviewCol(null);
     setGameState('ready');
   };
 
@@ -184,26 +202,33 @@ export default function Connect4Game({
         {gameState === 'loading' && 'Loading AI...'}
         {gameState === 'ready' && 'Click Start to begin!'}
         {gameState === 'playing' && isHumanTurn && 'Your turn - click a column'}
-        {gameState === 'thinking' && 'AI is thinking...'}
+        {(gameState === 'thinking' || gameState === 'previewing') && 'AI is thinking...'}
         {gameState === 'gameover' && winner === 'player' && 'You win!'}
         {gameState === 'gameover' && winner === 'ai' && 'AI wins!'}
         {gameState === 'gameover' && winner === 'draw' && 'Draw!'}
       </div>
 
-      <div style={styles.board}>
-        {/* Column hover indicators */}
+      <div style={styles.boardContainer}>
+        {/* Hover/Preview indicator row */}
         <div style={styles.hoverRow}>
-          {Array(COLS).fill(null).map((_, col) => (
-            <div
-              key={col}
-              style={{
-                ...styles.hoverCell,
-                opacity: isHumanTurn && legalMoves[col] && hoverCol === col ? 1 : 0,
-              }}
-            >
-              <div style={{ ...styles.piece, ...styles.player1 }} />
-            </div>
-          ))}
+          <div style={{ width: 8 }} />
+          {Array(COLS).fill(null).map((_, col) => {
+            const showHumanHover = isHumanTurn && legalMoves[col] && hoverCol === col;
+            const showAiPreview = aiPreviewCol === col;
+
+            return (
+              <div key={col} style={styles.cell}>
+                <div
+                  style={{
+                    ...styles.piece,
+                    ...(showAiPreview ? styles.player2 : styles.player1),
+                    opacity: showHumanHover || showAiPreview ? 1 : 0,
+                    transition: 'opacity 0.15s',
+                  }}
+                />
+              </div>
+            );
+          })}
         </div>
 
         {/* Main board */}
@@ -238,6 +263,7 @@ export default function Connect4Game({
 
         {/* Column numbers */}
         <div style={styles.columnNumbers}>
+          <div style={{ width: 8 }} />
           {Array(COLS).fill(null).map((_, col) => (
             <div key={col} style={styles.columnNumber}>{col}</div>
           ))}
@@ -250,7 +276,7 @@ export default function Connect4Game({
             Start Game
           </button>
         )}
-        {(gameState === 'playing' || gameState === 'thinking' || gameState === 'gameover') && (
+        {(gameState === 'playing' || gameState === 'thinking' || gameState === 'previewing' || gameState === 'gameover') && (
           <button onClick={resetGame} style={styles.button}>
             New Game
           </button>
@@ -290,7 +316,7 @@ const styles: Record<string, React.CSSProperties> = {
     marginBottom: '20px',
     minHeight: '30px',
   },
-  board: {
+  boardContainer: {
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'center',
@@ -298,14 +324,6 @@ const styles: Record<string, React.CSSProperties> = {
   hoverRow: {
     display: 'flex',
     marginBottom: '4px',
-  },
-  hoverCell: {
-    width: '60px',
-    height: '60px',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    transition: 'opacity 0.15s',
   },
   grid: {
     backgroundColor: '#1d4ed8',

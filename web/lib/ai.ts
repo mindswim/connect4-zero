@@ -6,8 +6,9 @@ import * as ort from 'onnxruntime-web';
 import { Board, Player, ROWS, COLS, NUM_CHANNELS, encodeBoard } from './game';
 import { MCTS, MCTSNode } from './mcts';
 
-// Use WASM backend by default (more compatible)
+// Configure ONNX Runtime
 ort.env.wasm.numThreads = 1;
+ort.env.logLevel = 'error';  // Suppress warnings
 
 export class Connect4AI {
   private session: ort.InferenceSession | null = null;
@@ -22,22 +23,24 @@ export class Connect4AI {
    * Load the ONNX model from a URL or path.
    */
   async loadModel(modelPath: string): Promise<void> {
-    try {
-      this.session = await ort.InferenceSession.create(modelPath, {
-        executionProviders: ['wasm'],
-      });
-
-      // Create MCTS with our evaluate function
-      this.mcts = new MCTS(
-        (board: Board, player: Player) => this.evaluate(board, player),
-        1.5  // c_puct
-      );
-
-      console.log('Model loaded successfully');
-    } catch (error) {
-      console.error('Failed to load model:', error);
-      throw error;
+    // Fetch the model as ArrayBuffer for more reliable loading
+    const response = await fetch(modelPath);
+    if (!response.ok) {
+      throw new Error(`Failed to fetch model: ${response.status}`);
     }
+    const modelBuffer = await response.arrayBuffer();
+
+    this.session = await ort.InferenceSession.create(modelBuffer, {
+      executionProviders: ['wasm'],
+    });
+
+    // Create MCTS with our evaluate function
+    this.mcts = new MCTS(
+      (board: Board, player: Player) => this.evaluate(board, player),
+      1.5  // c_puct
+    );
+
+    console.log('Model loaded successfully');
   }
 
   /**

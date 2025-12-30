@@ -15,7 +15,7 @@ from ..game import NUM_CHANNELS, ROWS, COLS
 def export_to_onnx(
     checkpoint_path: str,
     output_path: str,
-    opset_version: int = 14,
+    opset_version: int = 17,
 ) -> None:
     """
     Export a trained model to ONNX format.
@@ -23,7 +23,7 @@ def export_to_onnx(
     Args:
         checkpoint_path: Path to .pt checkpoint
         output_path: Path for output .onnx file
-        opset_version: ONNX opset version (14 works well with onnxruntime-web)
+        opset_version: ONNX opset version
     """
     # Load model
     model, _ = load_checkpoint(checkpoint_path, device=torch.device("cpu"))
@@ -32,7 +32,7 @@ def export_to_onnx(
     # Create dummy input
     dummy_input = torch.randn(1, NUM_CHANNELS, ROWS, COLS)
 
-    # Export
+    # Export using legacy exporter (dynamo=False) to avoid external data files
     torch.onnx.export(
         model,
         dummy_input,
@@ -47,6 +47,7 @@ def export_to_onnx(
             "policy": {0: "batch_size"},
             "value": {0: "batch_size"},
         },
+        dynamo=False,  # Use legacy exporter for single-file output
     )
 
     print(f"Exported to {output_path}")
