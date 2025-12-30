@@ -3,9 +3,9 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "connect4-zero"
-version = "0.1.0"
-description = "AlphaZero-style learner for Connect 4"
+name = "alphazero-arcade"
+version = "0.2.0"
+description = "AlphaZero for any game - train superhuman AI for board games"
 readme = "README.md"
 license = "MIT"
 requires-python = ">=3.11"
@@ -28,10 +28,13 @@ export = [
 ]
 
 [project.scripts]
+# New multi-game CLI
+alphazero = "alphazero.cli:app"
+# Keep old CLI for backwards compatibility
 c4z = "connect4zero.cli:app"
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/connect4zero"]
+packages = ["src/alphazero", "src/connect4zero"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
