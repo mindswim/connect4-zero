@@ -1,0 +1,7 @@
+{
+  "num_channels": 64,
+  "num_blocks": 5,
+  "board_rows": 6,
+  "board_cols": 7,
+  "input_channels": 2
+}

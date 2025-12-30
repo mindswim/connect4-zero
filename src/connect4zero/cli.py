@@ -400,6 +400,32 @@ def play(
 
 
 @app.command()
+def export(
+    model_path: Path = typer.Option(
+        ..., "--model", "-m", help="Path to model checkpoint"
+    ),
+    output: Path = typer.Option(
+        Path("web/public"), "--output", "-o", help="Output directory"
+    ),
+    web: bool = typer.Option(True, "--web/--onnx-only", help="Export with web config"),
+) -> None:
+    """Export model to ONNX format for browser inference."""
+    from .net import export_to_onnx, export_for_web
+
+    if web:
+        export_for_web(str(model_path), str(output))
+        console.print(f"\n[green]Web export complete![/]")
+        console.print(f"Files created in {output}:")
+        console.print(f"  - model.onnx")
+        console.print(f"  - model_config.json")
+    else:
+        output_file = output / "model.onnx" if output.is_dir() else output
+        output_file.parent.mkdir(parents=True, exist_ok=True)
+        export_to_onnx(str(model_path), str(output_file))
+        console.print(f"\n[green]Exported to {output_file}[/]")
+
+
+@app.command()
 def benchmark(
     simulations: int = typer.Option(100, "--sims", "-s", help="MCTS simulations"),
     games: int = typer.Option(10, "--games", "-n", help="Games to play"),

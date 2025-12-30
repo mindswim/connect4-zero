@@ -1,0 +1,22 @@
+{
+  "name": "connect4-zero-web",
+  "version": "0.1.0",
+  "description": "Connect 4 with AlphaZero AI in the browser",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start"
+  },
+  "dependencies": {
+    "next": "^15.0.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "onnxruntime-web": "^1.18.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@types/react": "^19.0.0",
+    "typescript": "^5.0.0"
+  }
+}

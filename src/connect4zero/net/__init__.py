@@ -11,6 +11,7 @@ from .model import (
     load_checkpoint,
 )
 from .train import Trainer, TrainMetrics
+from .export import export_to_onnx, export_for_web
 
 __all__ = [
     "Connect4Net",
@@ -23,4 +24,6 @@ __all__ = [
     "load_checkpoint",
     "Trainer",
     "TrainMetrics",
+    "export_to_onnx",
+    "export_for_web",
 ]

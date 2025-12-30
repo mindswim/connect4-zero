@@ -211,13 +211,32 @@ pytest tests/test_game_rules.py
 pytest --cov=connect4zero
 ```
 
+## Web Deployment
+
+Export your trained model to play in the browser:
+
+```bash
+# Install export dependencies
+pip install -e ".[export]"
+
+# Export model to ONNX
+c4z export --model checkpoints/best.pt --output web/public
+
+# Start the web app
+cd web
+npm install
+npm run dev
+```
+
+The web app uses ONNX Runtime Web to run the neural network directly in the browser with MCTS.
+
 ## Roadmap
 
 - [ ] Batched neural network evaluation during MCTS
 - [ ] Multiprocessing for self-play
 - [ ] Generic game interface for chess
-- [ ] ONNX export for deployment
-- [ ] Web UI for playing
+- [x] ONNX export for deployment
+- [x] Web UI for playing
 
 ## License
 
