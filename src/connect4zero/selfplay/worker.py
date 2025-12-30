@@ -121,16 +121,18 @@ class SelfPlayWorker:
             # Check for game end
             done, value = is_terminal(state)
             if done:
-                # value is from perspective of player who just played
-                # Convert to player 0's perspective
+                # value is from perspective of player TO MOVE (opponent of who just played)
+                # After apply_move, state is canonicalized to next player's view
+                # So value=-1 means current player lost, i.e., previous player won
+                # Convert to player 0's perspective for training
                 # If move_num is odd, player 0 just moved
                 # If move_num is even, player 1 just moved
                 if move_num % 2 == 1:
-                    # Player 0 just moved
-                    outcome = value
+                    # Player 0 just moved, value is from player 1's perspective
+                    outcome = -value  # Flip to player 0's perspective
                 else:
-                    # Player 1 just moved
-                    outcome = -value
+                    # Player 1 just moved, value is from player 0's perspective
+                    outcome = value
 
                 return GameRecord(
                     states=states,
@@ -212,11 +214,14 @@ def play_evaluation_game(
 
         done, value = is_terminal(state)
         if done:
+            # value is from perspective of player to move (loser if someone won)
             # Convert to player 1's perspective
             if move_num % 2 == 1:
-                outcome = value  # Player 1 just moved
+                # Player 1 just moved, value is from player 2's perspective
+                outcome = -value
             else:
-                outcome = -value  # Player 2 just moved
+                # Player 2 just moved, value is from player 1's perspective
+                outcome = value
             return outcome, move_num
 
 
@@ -245,10 +250,13 @@ def play_random_game() -> GameRecord:
 
         done, value = is_terminal(state)
         if done:
+            # value is from perspective of player to move
             if move_num % 2 == 1:
-                outcome = value
-            else:
+                # Player 0 just moved, flip to player 0's perspective
                 outcome = -value
+            else:
+                # Player 1 just moved, value is already from player 0's perspective
+                outcome = value
 
             return GameRecord(
                 states=states,
