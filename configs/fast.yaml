@@ -1,0 +1,40 @@
+# Fast training config for quick iteration
+# Use for development/debugging, not final training
+
+mcts:
+  num_simulations: 50      # Half the default
+  c_puct: 1.5
+  dirichlet_alpha: 0.3
+  dirichlet_epsilon: 0.25
+  temp_threshold: 10
+
+network:
+  num_channels: 32         # Smaller network
+  num_blocks: 3
+
+train:
+  batch_size: 128
+  lr: 0.001
+  weight_decay: 0.0001
+  train_steps_per_iter: 100
+  value_loss_weight: 1.0
+
+selfplay:
+  games_per_iter: 10       # Fewer games
+  max_moves: 42
+  augment_data: true
+
+eval:
+  num_matches: 20          # Much faster evaluation
+  accept_threshold: 0.55
+  eval_simulations: 50
+
+buffer:
+  capacity: 50000
+  min_samples: 500
+
+num_iterations: 100
+checkpoint_dir: checkpoints
+data_dir: data
+log_dir: runs
+seed: 42
