@@ -7,6 +7,7 @@ from .model import (
     create_model,
     save_checkpoint,
     load_checkpoint,
+    get_model_config,
 )
 
 __all__ = [
@@ -14,4 +15,5 @@ __all__ = [
     "create_model",
     "save_checkpoint",
     "load_checkpoint",
+    "get_model_config",
 ]
