@@ -4,37 +4,12 @@ import { useState, useCallback } from 'react';
 import Connect4Game from '../components/Connect4Game';
 import DifficultySlider, { DifficultyPresets, getDifficultyConfig, DifficultyConfig } from '../components/DifficultySlider';
 
-type GameType = 'connect4' | 'tictactoe';
-
-interface GameInfo {
-  name: string;
-  description: string;
-  modelPath: string;
-  available: boolean;
-}
-
-const GAMES: Record<GameType, GameInfo> = {
-  connect4: {
-    name: 'Connect 4',
-    description: 'Drop pieces to connect 4 in a row',
-    modelPath: '/model.onnx',
-    available: true,
-  },
-  tictactoe: {
-    name: 'Tic-Tac-Toe',
-    description: 'Classic 3x3 game',
-    modelPath: '/tictactoe.onnx',
-    available: false, // Coming soon
-  },
-};
-
 export default function Home() {
-  const [selectedGame, setSelectedGame] = useState<GameType>('connect4');
-  const [difficulty, setDifficulty] = useState(45); // Medium by default
+  const [difficulty, setDifficulty] = useState(45);
   const [difficultyConfig, setDifficultyConfig] = useState<DifficultyConfig>(
     getDifficultyConfig(45)
   );
-  const [gameKey, setGameKey] = useState(0); // For forcing re-render
+  const [gameKey, setGameKey] = useState(0);
   const [playerFirst, setPlayerFirst] = useState(true);
 
   const handleDifficultyChange = useCallback((value: number, config: DifficultyConfig) => {
@@ -46,34 +21,13 @@ export default function Home() {
     setGameKey(prev => prev + 1);
   }, []);
 
-  const gameInfo = GAMES[selectedGame];
-
   return (
     <main style={styles.main}>
       <div style={styles.container}>
         {/* Header */}
         <div style={styles.header}>
-          <h1 style={styles.title}>AI Game Arcade</h1>
-          <p style={styles.subtitle}>Play against AlphaZero-trained AI</p>
-        </div>
-
-        {/* Game Selector */}
-        <div style={styles.gameSelector}>
-          {Object.entries(GAMES).map(([key, game]) => (
-            <button
-              key={key}
-              onClick={() => game.available && setSelectedGame(key as GameType)}
-              style={{
-                ...styles.gameButton,
-                ...(selectedGame === key ? styles.gameButtonActive : {}),
-                ...(game.available ? {} : styles.gameButtonDisabled),
-              }}
-              disabled={!game.available}
-            >
-              <span style={styles.gameName}>{game.name}</span>
-              {!game.available && <span style={styles.comingSoon}>Soon</span>}
-            </button>
-          ))}
+          <h1 style={styles.title}>Connect 4</h1>
+          <p style={styles.subtitle}>Play against an AlphaZero-trained AI</p>
         </div>
 
         {/* Settings Panel */}
@@ -113,26 +67,24 @@ export default function Home() {
           </div>
 
           <button onClick={handleNewGame} style={styles.newGameButton}>
-            New Game with Settings
+            New Game
           </button>
         </div>
 
         {/* Game Area */}
         <div style={styles.gameArea}>
-          {selectedGame === 'connect4' && (
-            <Connect4Game
-              key={gameKey}
-              modelPath={gameInfo.modelPath}
-              numSimulations={difficultyConfig.simulations}
-              playerFirst={playerFirst}
-            />
-          )}
+          <Connect4Game
+            key={gameKey}
+            modelPath="/model.onnx"
+            numSimulations={difficultyConfig.simulations}
+            playerFirst={playerFirst}
+          />
         </div>
 
         {/* Footer */}
         <div style={styles.footer}>
           <p>
-            AI trained using <strong>AlphaZero</strong> algorithm
+            AI trained using the <strong>AlphaZero</strong> algorithm
           </p>
           <p style={styles.footerSub}>
             {difficultyConfig.name}: {difficultyConfig.simulations} MCTS simulations per move
@@ -166,40 +118,6 @@ const styles: Record<string, React.CSSProperties> = {
   subtitle: {
     fontSize: '1.1rem',
     color: '#6b7280',
-  },
-  gameSelector: {
-    display: 'flex',
-    gap: '12px',
-    justifyContent: 'center',
-    marginBottom: '24px',
-  },
-  gameButton: {
-    padding: '16px 24px',
-    fontSize: '1rem',
-    backgroundColor: 'white',
-    border: '2px solid #e5e7eb',
-    borderRadius: '8px',
-    cursor: 'pointer',
-    transition: 'all 0.15s',
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-    gap: '4px',
-  },
-  gameButtonActive: {
-    borderColor: '#1d4ed8',
-    backgroundColor: '#eff6ff',
-  },
-  gameButtonDisabled: {
-    opacity: 0.5,
-    cursor: 'not-allowed',
-  },
-  gameName: {
-    fontWeight: '600',
-  },
-  comingSoon: {
-    fontSize: '0.75rem',
-    color: '#9ca3af',
   },
   settings: {
     backgroundColor: 'white',
