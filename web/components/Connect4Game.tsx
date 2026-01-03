@@ -190,8 +190,6 @@ export default function Connect4Game({
 
   return (
     <div style={styles.container}>
-      <h1 style={styles.title}>Connect 4</h1>
-
       {useRandom && (
         <div style={styles.warning}>
           Model not found. Playing against random AI.
@@ -297,12 +295,7 @@ const styles: Record<string, React.CSSProperties> = {
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'center',
-    padding: '20px',
     fontFamily: 'system-ui, sans-serif',
-  },
-  title: {
-    fontSize: '2rem',
-    marginBottom: '10px',
   },
   warning: {
     color: '#f59e0b',
